@@ -309,6 +309,16 @@
   .icon-btn.send{border:0;color:#fff;background:linear-gradient(135deg,#ff4d94,#ff7eb3);box-shadow:0 6px 16px rgba(255,77,148,.4)}
   .icon-btn.rec{background:#ff4d94;color:#fff;animation:pulse 1.2s ease-in-out infinite}
   .voice-toggle{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:10px;font-size:.8rem;opacity:.75;cursor:pointer}
+  /* ---- opening loading screen ---- */
+  #splash{position:fixed;inset:0;z-index:90000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:24px;text-align:center;
+    background:linear-gradient(135deg,#ffdbe9,#efd4ff,#ffe6cc);transition:opacity .7s ease,transform .7s ease}
+  #splash.hide{opacity:0;transform:scale(1.04);pointer-events:none}
+  #splash .orb{width:120px;height:120px;margin-bottom:8px}
+  #splash .orb-emo{font-size:3rem}
+  .sp-title{font-family:'Pacifico',cursive;font-weight:400;font-size:clamp(1.5rem,6.5vw,2rem);color:var(--deep);margin:.2em 0 0}
+  .sp-line{margin:0 0 16px;font-size:.95rem;color:var(--ink);opacity:.8;min-height:1.5em}
+  .sp-bar{width:min(260px,70vw);height:10px;border-radius:99px;background:rgba(255,77,148,.18);overflow:hidden}
+  .sp-bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#ff4d94,#ffb703);box-shadow:0 0 14px rgba(255,77,148,.5);transition:width .25s linear}
 </style>
 </head>
 <body>
@@ -321,6 +331,16 @@
 <div id="floaters"></div>
 <canvas id="fx"></canvas>
 <div id="toast" class="toast"></div>
+<div id="splash" role="status" aria-live="polite">
+  <div class="orb">
+    <svg class="ring bg" viewBox="0 0 50 50"><circle cx="25" cy="25" r="21"/></svg>
+    <svg class="ring" viewBox="0 0 50 50"><circle cx="25" cy="25" r="21"/></svg>
+    <span class="orb-emo" id="spEmo">🎂</span>
+  </div>
+  <h2 class="sp-title">Preparing your surprise…</h2>
+  <p class="sp-line" id="spLine">Lighting the candles 🕯️</p>
+  <div class="sp-bar"><i id="spFill"></i></div>
+</div>
 
 <header class="top">
   <div class="pill"><span class="beat">💖</span> For Chizoba</div>
@@ -329,7 +349,7 @@
 <div class="foot">Made with 💖 by Somadina · Awka, Anambra State</div>
 
 <!-- 1. GIFT -->
-<section id="gift" class="screen active">
+<section id="gift" class="screen">
   <div class="card">
     <div class="chip st">A little something for you ✨</div>
     <div class="giftbox st" id="giftbox">
@@ -529,7 +549,7 @@ const CONFIG = {
 const FALLBACK = "Happy birthday, Chizoba! Over sixteen years of friendship, and you are still one of my favourite people in the whole world. You are beautiful, smart, funny, and so full of life that everywhere you go feels lighter. I know you might cry a little while listening to this, and that is okay, I am not judging. Thank you for being in my corner all these years, for the laughter, the patience, and the love. Now let me pray for you. Dear God, thank You for the gift of Chizoba's life. Please bless her on her special day. Protect her, keep her healthy and strong, and fill her heart with peace and joy. Open doors of favour for her, make every dream she is working on come true, and surround her with people who love her as much as I do. Wherever she goes this year, let goodness and mercy follow her. Amen. My wishes for you are good health, laughter every day, success in everything you touch, and all the happiness you deserve. I am so proud of the woman you are. Happy birthday once again. Love always, Somadina.";
 
 const QUESTIONS = [
-  { text: "Chizoba is the luckiest girl alive for having Somadina as her bestie.", yes: "Yes, obviously 😌", no: "No", toast: "Correct! Now say thank you 🙏" },
+  { text: "Chizoba, today you celebrate, but Somadina is the real gift. Agree?", yes: "Agreed 😎", no: "No", toast: "Wise choice. You are welcome 😎🎁" },
   { text: "Somadina is the most handsome guy you've ever met.", yes: "Yes 😌", no: "No", toast: "Finally, a woman of culture 👑" },
   { text: "Are you ready to open your gift?", yes: "Yes! 🎁", no: "No", toast: "Let's gooo! 🥳" }
 ];
@@ -1230,7 +1250,7 @@ Facts you can use:
 - Chizoba is beautiful (one of the prettiest girls Somadina knows), smart, funny and very jovial.
 - She can get emotional easily.
 - Somadina wants to pray for her and send her his wishes. Include a sincere prayer asking God to bless and protect her, give her good health, peace of mind, joy, success and favour in the new year, open doors for her, and surround her with good people. End the prayer with Amen. Then add three warm personal wishes from Somadina.
-- Before opening this gift she took a funny survey where the "No" button kept running away. She tried to click "No" ${a[0]} time(s) on "Chizoba is the luckiest girl alive for having Somadina as her bestie", ${a[1]} time(s) on "Somadina is the most handsome guy you've ever met", and ${a[2]} time(s) on "Are you ready to open your gift?". If any number is above 0, tease her lightly about it, once, near the start.
+- Before opening this gift she took a funny survey where the "No" button kept running away. She tried to click "No" ${a[0]} time(s) on "Chizoba, today you celebrate, but Somadina is the real gift", ${a[1]} time(s) on "Somadina is the most handsome guy you've ever met", and ${a[2]} time(s) on "Are you ready to open your gift?". If any number is above 0, tease her lightly about it, once, near the start.
 
 Rules:
 - 240 to 300 words in total, with the prayer and the wishes in the last half.
@@ -1283,6 +1303,30 @@ async function finale() {
   fanfare(); celebrate();
   setTimeout(speakMessage, 1500);
 }
+
+/* ============ OPENING LOADING SCREEN ============ */
+(function boot() {
+  const sp = $('#splash'), fill = $('#spFill'), line = $('#spLine'), emo = $('#spEmo');
+  const lines = ['Lighting the candles 🕯️', 'Blowing up the balloons 🎈', 'Wrapping your gift 🎁', 'Almost ready… 💖'];
+  const emos = ['🎂', '🎈', '🎁', '💖'];
+  const MIN = 2800; let i = 0, done = false;
+  const ticker = setInterval(() => { i = (i + 1) % lines.length; line.textContent = lines[i]; emo.textContent = emos[i]; }, 700);
+  const t0 = performance.now();
+  (function prog(n) {
+    if (done) return;
+    const k = Math.min(1, (n - t0) / MIN); fill.style.width = (90 * (1 - Math.pow(1 - k, 2))) + '%';
+    requestAnimationFrame(prog);
+  })(t0);
+  const fonts = (document.fonts && document.fonts.ready)
+    ? Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 3500))]) : Promise.resolve();
+  Promise.all([fonts, new Promise(r => setTimeout(r, MIN))]).then(() => {
+    done = true; fill.style.width = '100%'; clearInterval(ticker);
+    setTimeout(() => {
+      sp.classList.add('hide'); setTimeout(() => sp.remove(), 800);
+      show('gift'); splitTitle($('#giftTitle'), 'Chizoba, you have a gift!');
+    }, 350);
+  });
+})();
 </script>
 </body>
 </html>
